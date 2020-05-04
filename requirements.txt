@@ -1,0 +1,7 @@
+Flask==1.1.1
+Flask-Bcrypt==0.7.1
+Flask-JWT-Extended==3.24.1
+Flask-PyMongo==2.3.0
+Flask-Uploads==0.2.1
+pymongo==3.10.1
+marshmallow==3.3.0

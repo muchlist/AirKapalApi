@@ -5,6 +5,7 @@ from flask_jwt_extended import JWTManager
 
 from routes.user_route import bp as user_bp
 from routes.user_route_admin import bp as user_bp_admin
+from routes.vessel_route import bp as vessel_bp
 
 from db import mongo
 from utils.my_encoder import JSONEncoder
@@ -34,6 +35,7 @@ def add_claims_to_jwt(identity):
 
 app.register_blueprint(user_bp)
 app.register_blueprint(user_bp_admin)
+app.register_blueprint(vessel_bp)
 
 
 if __name__ == '__main__':

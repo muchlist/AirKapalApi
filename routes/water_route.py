@@ -83,8 +83,8 @@ def waters():
             "int_dom": data["int_dom"],
         }
         photo_embed = {
-            "tonase_begin_photo": "",
-            "tonase_end_photo": "",
+            "begin_photo": "",
+            "end_photo": "",
             "witness_photo": "",
         }
         approval_embed = {

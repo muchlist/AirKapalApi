@@ -1,4 +1,5 @@
 {
     "mongo_uri" : "mongodb://localhost:27017/airkapal",
-    "jwt_secret_key" : ""
+    "jwt_secret_key" : "",
+    "uploaded_image_dest" : "static/images/"
 }

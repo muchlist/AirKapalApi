@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 config.json
 static/images/
-static/profile/
+.static/images/

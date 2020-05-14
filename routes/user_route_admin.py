@@ -17,7 +17,7 @@ from flask_jwt_extended import (
 from datetime import timedelta
 
 
-bp = Blueprint('user_admin_bp', __name__)
+bp = Blueprint('user_admin_bp', __name__, url_prefix='/admin')
 
 
 def user_eksis(username):
@@ -33,7 +33,7 @@ def user_eksis(username):
 register
 ------------------------------------------------------------------------------
 """
-@bp.route('/admin/register', methods=['POST'])
+@bp.route('/register', methods=['POST'])
 @jwt_required
 def register_user():
 
@@ -81,7 +81,7 @@ def register_user():
 Merubah dan mendelete user
 ------------------------------------------------------------------------------
 """
-@bp.route('/admin/users/<string:username>', methods=['PUT', 'DELETE'])
+@bp.route('/users/<string:username>', methods=['PUT', 'DELETE'])
 @jwt_required
 def put_delete_user(username):
 
@@ -126,7 +126,7 @@ def put_delete_user(username):
 Reset Password
 ------------------------------------------------------------------------------
 """
-@bp.route('/admin/reset/<string:username>', methods=['GET'])
+@bp.route('/reset/<string:username>', methods=['GET'])
 @jwt_required
 def reset_password_by_admin(username):
 

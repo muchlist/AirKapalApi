@@ -10,14 +10,6 @@ class WaterCreateSchema(Schema):
     int_dom = fields.Str(required=True)
     agent = fields.Str(required=True)
     created_at = fields.DateTime(required=True)
-    # updated_at = fields.DateTime(required=True)
-
-
-    # #auto
-    # agent = fields.Str(required=True) #auto dari kapal
-    # branch #auto dari user
-    # tonase_begin
-    # tonase_end
 
 class WaterEditSchema(Schema):
     job_number = fields.Str(required=True)
@@ -30,3 +22,12 @@ class WaterEditSchema(Schema):
     created_at = fields.DateTime(required=True)
 
     updated_at = fields.DateTime(required=True)
+
+class WaterApprovalSchema(Schema):
+    updated_at = fields.DateTime(required=True)
+
+class WaterMeterInitSchema(Schema):
+    branch = fields.Str(required=True)
+    locate = fields.Str(required=True)
+    start_date = fields.DateTime(required=True)
+    start_tonase = fields.Int(required=True)

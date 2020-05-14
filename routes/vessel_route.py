@@ -19,6 +19,7 @@ from bson.objectid import ObjectId
 # Set up a Blueprint
 bp = Blueprint('vessel_bp', __name__)
 
+
 """
 ------------------------------------------------------------------------------
 List kapal dan register
@@ -43,7 +44,6 @@ def get_vessel_list():
 
         return {"vessels": vessels_list}, 200
 
-
     if request.method == 'POST':
         schema = VesselRegisterSchema()
         try:
@@ -54,7 +54,7 @@ def get_vessel_list():
         if not valid.isTallyAndManager(get_jwt_claims()):
             return {"message": "user tidak memiliki authorisasi"}, 403
 
-        #validasi isActive
+        # validasi isActive
         if "isActive" not in data:
             data["isActive"] = True
 
@@ -70,7 +70,6 @@ def get_vessel_list():
             return {"message": "galat insert register"}, 500
 
         return {"message": "data berhasil disimpan"}, 201
-
 
 
 """

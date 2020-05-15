@@ -23,6 +23,13 @@ class WaterEditSchema(Schema):
 
     updated_at = fields.DateTime(required=True)
 
+class WaterApprovalWitnessSchema(Schema):
+    updated_at = fields.DateTime(required=True)
+    name = fields.Str(required=True)
+
+class WaterApprovalWitnessNameSchema(Schema):
+    name = fields.Str(required=True)
+
 class WaterApprovalSchema(Schema):
     updated_at = fields.DateTime(required=True)
 
@@ -31,3 +38,8 @@ class WaterMeterInitSchema(Schema):
     locate = fields.Str(required=True)
     start_date = fields.DateTime(required=True)
     start_tonase = fields.Int(required=True)
+
+class WaterInsertTonaseSchema(Schema):
+    tonase = fields.Int(required=True)
+    locate = fields.Str(required=True)
+    time = fields.DateTime(required=True)

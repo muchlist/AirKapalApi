@@ -10,6 +10,7 @@ from routes.vessel_route import bp as vessel_bp
 from routes.water_route import bp as water_bp
 from routes.image_route import bp as image_bp
 from routes.water_tonase_route_admin import bp as tonase_admin_bp
+from routes.water_approval_route import bp as water_approval_bp
 
 from db import mongo
 from utils.my_encoder import JSONEncoder
@@ -46,6 +47,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(user_bp_admin)
 app.register_blueprint(vessel_bp)
 app.register_blueprint(water_bp)
+app.register_blueprint(water_approval_bp)
 app.register_blueprint(tonase_admin_bp)
 app.register_blueprint(image_bp)
 

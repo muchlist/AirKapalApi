@@ -13,6 +13,7 @@ from validations import role_validation as valid
 from schemas.water import (
     WaterCreateSchema,
     WaterEditSchema,
+    WaterInsertTonaseSchema,
 )
 
 from datetime import datetime
@@ -33,6 +34,17 @@ def job_number_exist(job_number):
         {"job_number": job_number}, {"job_number": 1})
     if result:
         return True
+    return False
+
+
+def get_last_tonase(branch, locate):
+    query = {
+        "branch": branch,
+        "locate": locate,
+    }
+    tonase = mongo.db.water_state.find_one(query, {"end_tonase": 1})
+    if tonase:
+        return tonase["end_tonase"]
     return False
 
 
@@ -69,12 +81,12 @@ def waters():
         # SETUP DATA INSERT START
         volume_embed = {
             "tonase_ordered": data["tonase_ordered"],
-            "tonase_begin": None,
-            "tonase_begin_time": None,
+            "tonase_start": None,
+            "tonase_start_time": None,
             "tonase_end": None,
             "tonase_end_time": None,
             "tonase_real": None,
-            "tonase_wrong": None,
+            "tonase_difference": None,
         }
         vessel_embed = {
             "vessel_name": data["vessel_name"].upper(),
@@ -83,7 +95,7 @@ def waters():
             "int_dom": data["int_dom"],
         }
         photo_embed = {
-            "begin_photo": "",
+            "start_photo": "",
             "end_photo": "",
             "witness_photo": "",
         }
@@ -93,6 +105,7 @@ def waters():
             "approval_time": None,
             "created_by": get_jwt_claims()["name"],
             "created_by_id": get_jwt_identity(),
+            "witness_name": "",
         }
         data_insert = {
             "job_number": data["job_number"].strip().upper(),
@@ -102,6 +115,7 @@ def waters():
             "updated_at": datetime.now(),
             "doc_level": 1,
             "suspicious": False,
+            "suspicious_note": "",
             "photos": photo_embed,
             "vessel": vessel_embed,
             "approval": approval_embed,
@@ -259,3 +273,117 @@ def get_water_detail(id_water):
         if water is None:
             return {"message": "Dokumen yang sudah disetujui tidak dapat dihapus"}, 406
         return {"message": "Dokumen berhasil di hapus"}, 204
+
+
+"""
+-------------------------------------------------------------------------------
+Memasukkan tonase air ke start
+menghitung selisih antara meteran mulai dengan meteran kegiatan terakhir kali
+-------------------------------------------------------------------------------
+"""
+@bp.route('/tonase-start/<water_id>', methods=['POST'])
+@jwt_required
+def insert_tonase_start(water_id):
+
+    # VALIDASI START
+    if not ObjectId.is_valid(water_id):
+        return {"message": "Object ID tidak valid"}, 400
+
+    if not valid.isTally(get_jwt_claims()):
+        return {"message": "User tidak memiliki hak akses untuk merubah dokumen ini"}, 403
+
+    schema = WaterInsertTonaseSchema()
+    try:
+        data = schema.load(request.get_json())
+    except ValidationError as err:
+        return err.messages, 400
+    # VALIDASI END
+
+    # Perhitungan tonase start
+    #mendapatkan tonase terakhir
+    last_tonase = get_last_tonase(get_jwt_claims()["branch"], data["locate"])
+    if last_tonase is None:
+        return {"message": f'tidak dapat menemukan tonase terakhir pada lokasi {data["locate"]}, harap hubungi administrator'}, 400
+    
+    #menghitung selisih antara tonase akhir dan meteran awal pengisian yang baru
+    tonase_difference = data["tonase"] - last_tonase
+    # Perhitungan tonase end
+
+
+    query = {
+        '_id': ObjectId(water_id),
+        "doc_level": 1,
+        "branch": get_jwt_claims()["branch"],
+    }
+    update = {
+        '$set': {
+            "updated_at": datetime.now(),
+            "approval.created_by": get_jwt_claims()["name"],
+            "approval.created_by_id": get_jwt_identity(),
+
+            "volume.tonase_start": data["tonase"],
+            "volume.tonase_start_time": data["time"],
+            "volume.tonase_difference": tonase_difference,  # selisih dengan tonase kegiatan sebelumnya
+        }
+    }
+
+    # DATABASE
+    water = mongo.db.waters.find_one_and_update(
+        query, update, return_document=True
+    )
+
+    if water is None:
+        return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
+
+    return jsonify(water), 201
+
+
+"""
+-------------------------------------------------------------------------------
+Memasukkan tonase air ke end
+-------------------------------------------------------------------------------
+"""
+@bp.route('/tonase-end/<water_id>', methods=['POST'])
+@jwt_required
+def insert_tonase_end(water_id):
+
+    # VALIDASI START
+    if not ObjectId.is_valid(water_id):
+        return {"message": "Object ID tidak valid"}, 400
+
+    if not valid.isTally(get_jwt_claims()):
+        return {"message": "User tidak memiliki hak akses untuk merubah dokumen ini"}, 403
+
+    schema = WaterInsertTonaseSchema()
+    try:
+        data = schema.load(request.get_json())
+    except ValidationError as err:
+        return err.messages, 400
+    # VALIDASI END
+
+
+    query = {
+        '_id': ObjectId(water_id),
+        "doc_level": 1,
+        "branch": get_jwt_claims()["branch"],
+    }
+    update = {
+        '$set': {
+            "updated_at": datetime.now(),
+            "approval.created_by": get_jwt_claims()["name"],
+            "approval.created_by_id": get_jwt_identity(),
+
+            "volume.tonase_end": data["tonase"],
+            "volume.tonase_end_time": data["time"],
+        }
+    }
+
+    # DATABASE
+    water = mongo.db.waters.find_one_and_update(
+        query, update, return_document=True
+    )
+
+    if water is None:
+        return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
+
+    return jsonify(water), 201

@@ -185,8 +185,6 @@ def tally_approved(water_id):
     if ordered_tonase != real_tonase:
         suspicious_note = suspicious_note + \
             f"Terdapat perbedaan Jumlah air yang dipesan dan yang diisi sebesar {real_tonase - ordered_tonase} ton\n"
-
-    # real_tonase = water["volume"]["tonase_real"]
     # CALCULATE REAL TONASE END
 
     # DATABASE WATER START 2ND
@@ -204,10 +202,20 @@ def tally_approved(water_id):
     water = mongo.db.waters.find_one_and_update(
         query, update, return_document=True
     )
-
-    if water is None:
-        return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
     # DATABASE WATER END 2ND
+
+    # DATABASE STATE METER START
+    query = {
+        "branch": water["branch"],
+        "locate": water["locate"],
+    }
+    update = {
+        '$set': {
+            "end_tonase": water["volume"]["tonase_end"],
+        }
+    }
+    mongo.db.water_state.update_one(query, update)
+    # DATABASE STATE METER END
 
     return jsonify(water), 201
 
@@ -258,17 +266,5 @@ def foreman_approved(water_id):
         return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
     # DATABASE WATER END
 
-    # DATABASE STATE METER START
-    query = {
-        "branch": water["branch"],
-        "locate": water["locate"],
-    }
-    update = {
-        '$set': {
-            "end_tonase": water["volume"]["tonase_end"],
-        }
-    }
-    mongo.db.water_state.update_one(query, update)
-    # DATABASE STATE METER END
 
     return jsonify(water), 201

@@ -1,4 +1,4 @@
-from db import mongo
+from dao import dd_tonase_update
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
@@ -37,23 +37,11 @@ def init_meters():
         return err.messages, 400
 
     # mendaftarkan ke mongodb
-    query = {
-        "branch": data["branch"],
-        "locate": data["locate"],
-    }
-    update = {
-        '$set':
-        {
-            "start_date": data["start_date"],
-            "start_tonase": data["start_tonase"],
-            "end_tonase": data["start_tonase"],
-            "updated_by": get_jwt_claims()["name"],
-            "last_update": datetime.now(),
-        },
-    }
-    try:
-        mongo.db.water_state.update(query, update, upsert=True)
-    except:
-        return {"message": "galat insert state tonase"}, 500
+    data["updated_by"] = get_jwt_claims()["name"]
+    data["last_update"] = datetime.now()
+
+    ok = dd_tonase_update.insert(data)
+    if not ok:
+        return {"message": "Galat memasukkan database"}, 500
 
     return {"message": "data berhasil disimpan"}, 201

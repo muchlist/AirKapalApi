@@ -1,4 +1,4 @@
-from db import mongo
+from dao import dd_water_update
 import os
 
 from flask import Blueprint, request, jsonify
@@ -67,10 +67,7 @@ def upload_image(water_id, position):
         # DATABASE
         # key di database berdasarkan posisi gambar path url
         key = f"photos.{position}_photo"
-        water_doc = mongo.db.waters.find_one_and_update(
-            {'_id': ObjectId(water_id)},
-            {'$set': {key: image_path}}, {'_id': 1}
-        )
+        water_doc = dd_water_update.update_photo(water_id, key, image_path)
 
         if water_doc is None:
             return {"message": "water_doc check id salah"}, 400

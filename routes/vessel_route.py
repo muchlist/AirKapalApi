@@ -1,4 +1,5 @@
-from db import mongo
+from dao import (dd_vessel_query,
+                 dd_vessel_update)
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
@@ -29,20 +30,12 @@ List kapal dan register
 @jwt_required
 def get_vessel_list():
     if request.method == 'GET':
-
         search = request.args.get("search")
         if search:
-            query_string = {'$regex': f'.*{search}.*'}
-            vessel_collection = mongo.db.vessel.find(
-                {"ship_name": query_string})
+            vessels = dd_vessel_query.search_vessel(search)
         else:
-            vessel_collection = mongo.db.vessel.find()
-
-        vessels_list = []
-        for vessel in vessel_collection:
-            vessels_list.append(vessel)
-
-        return {"vessels": vessels_list}, 200
+            vessels = dd_vessel_query.get_vessel_list()
+        return {"vessels": vessels}, 200
 
     if request.method == 'POST':
         schema = VesselRegisterSchema()
@@ -58,17 +51,7 @@ def get_vessel_list():
         if "isActive" not in data:
             data["isActive"] = True
 
-        data_insert = {
-            "ship_name": data["ship_name"].upper(),
-            "agent": data["agent"].upper(),
-            "isInternational": data["isInternational"],
-            "isActive": data["isActive"]
-        }
-        try:
-            mongo.db.vessel.insert_one(data_insert)
-        except:
-            return {"message": "galat insert register"}, 500
-
+        dd_vessel_update.insert_vessel(data)
         return {"message": "data berhasil disimpan"}, 201
 
 
@@ -85,7 +68,7 @@ def get_vessel_detail(vessel_id):
         return {"message": "Object Id tidak valid"}, 400
 
     if request.method == 'GET':
-        ship = mongo.db.vessel.find_one({'_id': ObjectId(vessel_id)})
+        ship = dd_vessel_query.get_vessel(vessel_id)
         return jsonify(ship), 200
 
     if request.method == 'PUT':
@@ -98,19 +81,6 @@ def get_vessel_detail(vessel_id):
         except ValidationError as err:
             return err.messages, 400
 
-        data_to_change = {
-            "ship_name": data["ship_name"].upper(),
-            "agent": data["agent"].upper(),
-            "isInternational": data["isInternational"],
-            "isActive": data["isActive"]
-        }
+        vessel = dd_vessel_update.change_vessel(data)
 
-        try:
-            mongo.db.vessel.update_one({'_id': ObjectId(vessel_id)}, {
-                                       '$set': data_to_change})
-        except:
-            return {"message": "galat, database gagal diakses"}, 500
-
-        data_to_change["_id"] = vessel_id
-
-        return jsonify(data_to_change), 200
+        return jsonify(vessel), 200

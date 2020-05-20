@@ -1,4 +1,5 @@
 from db import mongo
+from dao import dd_water_update, dd_tonase_update
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
@@ -24,53 +25,6 @@ bp = Blueprint('water_approval_bp', __name__, url_prefix='/api')
 
 """
 -------------------------------------------------------------------------------
-APPROVAL mengganti nama Saksi
--------------------------------------------------------------------------------
-"""
-@bp.route('/water-approval/name/<water_id>', methods=['POST'])
-@jwt_required
-def check_to_ready_doc(water_id):
-
-    # VALIDATE START
-    claims = get_jwt_claims()
-
-    if not valid.isTally(claims):
-        return {"message": "User tidak memiliki hak akses untuk menyetujui dokumen ini"}, 403
-
-    schema = WaterApprovalWitnessNameSchema()
-    try:
-        data = schema.load(request.get_json())
-    except ValidationError as err:
-        return err.messages, 400
-    # VALIDATE END
-
-    query = {
-        '_id': ObjectId(water_id),
-        # less than 3 artinya masih dalam approval saksi
-        "doc_level": {"$lt": 3},
-        "branch": claims["branch"],
-    }
-    update = {
-        '$set': {"approval.witness_name": data["name"].upper(),
-                 "approval.created_by": get_jwt_claims()["name"],
-                 "approval.created_by_id": get_jwt_identity(),
-
-                 "updated_at": datetime.now()}
-    }
-
-    # DATABASE
-    water = mongo.db.waters.find_one_and_update(
-        query, update, return_document=True
-    )
-
-    if water is None:
-        return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
-
-    return jsonify(water), 201
-
-
-"""
--------------------------------------------------------------------------------
 APPROVAL Saksi dari lvl 1 ke lvl 2
 memasukkan nama sebelum memencet tombol di android
 -------------------------------------------------------------------------------
@@ -92,24 +46,12 @@ def witness_approved(water_id):
         return err.messages, 400
     # VALIDATE END
 
-    query = {
-        '_id': ObjectId(water_id),
-        "updated_at": data["updated_at"],
-        "doc_level": 1,
-        "branch": claims["branch"],
-    }
-    update = {
-        '$set': {"doc_level": 2,
-                 "approval.created_by": get_jwt_claims()["name"],
-                 "approval.created_by_id": get_jwt_identity(),
-                 "approval.witness_name": data["name"].upper(),
-                 "updated_at": datetime.now()}
-    }
+    data["_id"] = water_id
+    data["branch"] = claims["branch"]
+    data["approval.created_by"] = claims["name"]
+    data["approval.created_by_id"] = get_jwt_identity()
 
-    # DATABASE
-    water = mongo.db.waters.find_one_and_update(
-        query, update, return_document=True
-    )
+    water = dd_water_update.update_witness_approval(data)
 
     if water is None:
         return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
@@ -139,23 +81,13 @@ def tally_approved(water_id):
         return err.messages, 400
     # VALIDATE END
 
-    # DATABASE WATER START
-    query = {
-        '_id': ObjectId(water_id),
-        "updated_at": data["updated_at"],
-        "doc_level": 2,
-        "branch": claims["branch"],
-    }
-    update = {
-        '$set': {"doc_level": 3,
-                 "approval.created_by": get_jwt_claims()["name"],
-                 "approval.created_by_id": get_jwt_identity(),
-                 "updated_at": datetime.now()}
-    }
+    data["_id"] = water_id
+    data["branch"] = claims["branch"]
+    data["approval.created_by"] = claims["name"]
+    data["approval.created_by_id"] = get_jwt_identity()
 
-    water = mongo.db.waters.find_one_and_update(
-        query, update, return_document=True
-    )
+    # DATABASE WATER START
+    water = dd_water_update.update_tally_approval(data)
 
     if water is None:
         return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
@@ -188,33 +120,16 @@ def tally_approved(water_id):
     # CALCULATE REAL TONASE END
 
     # DATABASE WATER START 2ND
-    query = {
-        '_id': ObjectId(water_id),
-    }
-    update = {
-        '$set': {"doc_level": 3,
-                 "volume.tonase_real": real_tonase,
-                 "suspicious": suspicious,
-                 "suspicious_note": suspicious_note,
-                 }
-    }
-
-    water = mongo.db.waters.find_one_and_update(
-        query, update, return_document=True
-    )
+    water = dd_water_update.update_real_tonase(water_id,
+                                               real_tonase,
+                                               suspicious,
+                                               suspicious_note)
     # DATABASE WATER END 2ND
 
     # DATABASE STATE METER START
-    query = {
-        "branch": water["branch"],
-        "locate": water["locate"],
-    }
-    update = {
-        '$set': {
-            "end_tonase": water["volume"]["tonase_end"],
-        }
-    }
-    mongo.db.water_state.update_one(query, update)
+    dd_tonase_update.update(water["branch"],
+                            water["locate"],
+                            water["volume"]["tonase_end"])
     # DATABASE STATE METER END
 
     return jsonify(water), 201
@@ -243,28 +158,18 @@ def foreman_approved(water_id):
         return err.messages, 400
     # VALIDATE END
 
-    # DATABASE WATER START
-    query = {
-        '_id': ObjectId(water_id),
-        "updated_at": data["updated_at"],
-        "doc_level": 3,
-        "branch": claims["branch"],
-    }
-    update = {
-        '$set': {"doc_level": 4,
-                 "approval.approval_name": get_jwt_claims()["name"],
-                 "approval.approval_id": get_jwt_identity(),
-                 "approval.approval_time": datetime.now(),
-                 "updated_at": datetime.now()}
-    }
+    data["_id"] = water_id
+    data["branch"] = claims["branch"]
+    data["approval.approval_name"] = claims["name"]
+    data["approval.approval_id"] = get_jwt_identity()
+    data["approval.approval_time"] = get_jwt_identity()
+    data["new_updated_at"] = datetime.now()
 
-    water = mongo.db.waters.find_one_and_update(
-        query, update, return_document=True
-    )
+    # DATABASE WATER START
+    water = dd_water_update.update_manager_approval(data)
 
     if water is None:
         return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
     # DATABASE WATER END
-
 
     return jsonify(water), 201

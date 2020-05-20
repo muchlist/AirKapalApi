@@ -1,13 +1,7 @@
-from dao import (dd_user_query,
-                 dd_user_update)
+from datetime import timedelta
 
-from utils.my_bcrypt import bcrypt
 from flask import Blueprint, request, jsonify
-from validations import role_validation as valid
 from marshmallow import ValidationError
-from schemas.user import (UserRegisterSchema,
-                          UserLoginSchema,
-                          UserChangePassSchema)
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
@@ -15,7 +9,13 @@ from flask_jwt_extended import (
     get_jwt_claims,
 )
 
-from datetime import timedelta
+from validations import role_validation as valid
+from schemas.user import (UserRegisterSchema,
+                          UserLoginSchema,
+                          UserChangePassSchema)
+from dao import (dd_user_query,
+                 dd_user_update)
+from utils.my_bcrypt import bcrypt
 
 
 bp = Blueprint('user_bp', __name__)

@@ -1,5 +1,6 @@
-from db import mongo
 from bson.objectid import ObjectId
+
+from db import mongo
 
 
 def search_vessel(name: str) -> list:

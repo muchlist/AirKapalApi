@@ -1,5 +1,4 @@
-from db import mongo
-from dao import dd_water_update, dd_tonase_update
+from datetime import datetime
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
@@ -9,15 +8,16 @@ from flask_jwt_extended import (
 )
 from marshmallow import ValidationError
 from bson.objectid import ObjectId
-from validations import role_validation as valid
 
+from validations import role_validation as valid
 from schemas.water import (
     WaterApprovalSchema,
     WaterApprovalWitnessNameSchema,
     WaterApprovalWitnessSchema
 )
+from dao import (dd_water_update,
+                 dd_tonase_update)
 
-from datetime import datetime
 
 # Set up a Blueprint
 bp = Blueprint('water_approval_bp', __name__, url_prefix='/api')

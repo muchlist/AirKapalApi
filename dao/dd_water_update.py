@@ -1,6 +1,8 @@
-from db import mongo
-from bson.objectid import ObjectId
 from datetime import datetime
+
+from bson.objectid import ObjectId
+
+from db import mongo
 
 
 def insert(data: dict) -> str:

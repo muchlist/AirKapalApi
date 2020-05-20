@@ -1,3 +1,5 @@
+from bson.objectid import ObjectId
+
 from db import mongo
 
 

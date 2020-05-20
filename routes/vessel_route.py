@@ -1,6 +1,3 @@
-from dao import (dd_vessel_query,
-                 dd_vessel_update)
-
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
     create_access_token,
@@ -12,9 +9,12 @@ from flask_jwt_extended import (
     get_jwt_claims,
 )
 from marshmallow import ValidationError
+from bson.objectid import ObjectId
+
 from validations import role_validation as valid
 from schemas.vessel import VesselRegisterSchema
-from bson.objectid import ObjectId
+from dao import (dd_vessel_query,
+                 dd_vessel_update)
 
 
 # Set up a Blueprint

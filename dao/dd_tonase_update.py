@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from db import mongo
 
 
@@ -12,7 +14,7 @@ def insert(data: dict) -> bool:  # RETURN OK
             "start_date": data["start_date"],
             "start_tonase": data["start_tonase"],
             "end_tonase": data["start_tonase"],
-            "updated_by": get_jwt_claims()["name"],
+            "updated_by": data["updated_by"],
             "last_update": datetime.now(),
         },
     }

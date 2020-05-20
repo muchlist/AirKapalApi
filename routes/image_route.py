@@ -1,5 +1,8 @@
-from dao import dd_water_update
+
 import os
+from datetime import datetime
+import string
+import random
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
@@ -15,11 +18,8 @@ from bson.objectid import ObjectId
 from utils import image_helper
 from validations import role_validation as valid
 from schemas.image import ImageSchema
-
-from datetime import datetime
-import string
-import random
 from config import config as cf
+from dao import dd_water_update
 
 # Set up a Blueprint
 bp = Blueprint('water_image_bp', __name__, url_prefix='/api')
@@ -30,7 +30,7 @@ bp = Blueprint('water_image_bp', __name__, url_prefix='/api')
 def upload_image(water_id, position):
     # static/images/namafolder/namafile
 
-    #VALIDASI START
+    # VALIDASI START
     if not ObjectId.is_valid(water_id):
         return {"message": "Object ID tidak valid"}, 400
 
@@ -48,8 +48,7 @@ def upload_image(water_id, position):
     claims = get_jwt_claims()
     if not valid.isTallyAndManager(claims):
         return {"message": "user ini tidak memiliki hak akses untuk mengupload"}, 403
-    #VALIDASI END
-
+    # VALIDASI END
 
     # Cek extensi untuk nama file custom
     extension = image_helper.get_extension(data['image'])
@@ -71,13 +70,12 @@ def upload_image(water_id, position):
 
         if water_doc is None:
             return {"message": "water_doc check id salah"}, 400
-            
+
         return {"message": image_path}, 201
 
     except UploadNotAllowed:
         extension = image_helper.get_extension(data['image'])
         return {"message": f"extensi {extension} not allowed"}, 406
-
 
 
 @bp.route('/upload/profil-image', methods=['POST'])
@@ -98,12 +96,13 @@ def upload_profil_image():
     # Cek extensi untuk nama file custom
     extension = image_helper.get_extension(data['image'])
     # Nama file dan ekstensi
-    fileName = f"{get_jwt_identity()}{extension}"     
+    fileName = f"{get_jwt_identity()}{extension}"
     folder = "profile"
 
-    #Check If image with same name already exist
+    # Check If image with same name already exist
     try:
-        filepath = os.path.join(cf.get("uploaded_image_dest"), folder, fileName)
+        filepath = os.path.join(
+            cf.get("uploaded_image_dest"), folder, fileName)
         if os.path.exists(filepath):
             os.remove(filepath)
     except:

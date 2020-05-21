@@ -54,7 +54,7 @@ def witness_approved(water_id):
     water = dd_water_update.update_witness_approval(data)
 
     if water is None:
-        return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya. Harap cek data terbaru!"}, 402
+        return {"message": "Gagal update. Dokumen ini telah di ubah oleh seseorang sebelumnya atau tonase tidak lengkap!"}, 402
 
     return jsonify(water), 201
 

@@ -43,3 +43,4 @@ class WaterInsertTonaseSchema(Schema):
     tonase = fields.Int(required=True)
     locate = fields.Str(required=True)
     time = fields.DateTime(required=True)
+    updated_at = fields.DateTime(required=True)

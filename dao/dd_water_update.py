@@ -102,6 +102,7 @@ def insert_tonase_start(data: dict) -> dict:
         '_id': ObjectId(data['_id']),
         "doc_level": 1,
         "branch": data["branch"],
+        "updated_at": data["update_at"],
     }
     update = {
         '$set': {
@@ -127,6 +128,7 @@ def insert_tonase_end(data: dict) -> dict:
         '_id': ObjectId(data['_id']),
         "doc_level": 1,
         "branch": data["branch"],
+        "updated_at": data["update_at"],
     }
     update = {
         '$set': {
@@ -152,6 +154,8 @@ def update_witness_approval(data: dict) -> dict:
         "updated_at": data["updated_at"],
         "doc_level": 1,
         "branch": data["branch"],
+        "volume.tonase_start":{'$ne': None},  #Tonase tidak boleh null saat diapprove
+        "volume.tonase_end":{'$ne': None},  #Tonase tidak boleh null saat diapprove
     }
     update = {
         '$set': {"doc_level": 2,

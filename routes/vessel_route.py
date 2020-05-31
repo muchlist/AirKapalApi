@@ -32,7 +32,7 @@ def get_vessel_list():
     if request.method == 'GET':
         search = request.args.get("search")
         if search:
-            vessels = dd_vessel_query.search_vessel(search)
+            vessels = dd_vessel_query.search_vessel(search.upper())
         else:
             vessels = dd_vessel_query.get_vessel_list()
         return {"vessels": vessels}, 200

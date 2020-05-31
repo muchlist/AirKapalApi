@@ -88,6 +88,8 @@ def waters():
     GET Memunculkan water list
             ?branch=SAMPIT
             &  agent=MERATUS 
+            &  meter=METER_1
+            &  lvl=1
             &  page=1
             &  search=""
     -------------------------------------------------------------------------------
@@ -96,11 +98,15 @@ def waters():
 
         branch = request.args.get("branch")
         agent = request.args.get("agent")
+        meter = request.args.get("meter")
+        lvl = request.args.get("lvl")
         search = request.args.get("search")
         page = request.args.get("page")
 
         results = dd_water_query.get_waters_with_filter(branch,
                                                         agent,
+                                                        meter,
+                                                        lvl,
                                                         search,
                                                         page)
 

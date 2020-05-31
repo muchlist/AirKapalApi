@@ -17,6 +17,8 @@ def get_water_by_job_number(job_number: str) -> dict:
 
 def get_waters_with_filter(branch_arg: str,
                            agent_arg: str,
+                           meter_arg: str,
+                           lvl_arg: str,
                            search_arg: str,
                            page_arg: str,
                            ) -> list:
@@ -35,8 +37,12 @@ def get_waters_with_filter(branch_arg: str,
         find["branch"] = branch_arg
     if agent_arg:
         find["vessel.agent"] = agent_arg
+    if meter_arg:
+        find["locate"] = meter_arg.upper()
+    if lvl_arg:
+        find["doc_level"] = int(lvl_arg)
     if search_arg:
-        find["vessel.vessel_name"] = {'$regex': f'.*{search_arg}.*'}
+        find["vessel.vessel_name"] = {'$regex': f'.*{search_arg.upper()}.*'}
 
     water_cursor = mongo.db.waters.find(find).skip(
         (page_number - 1) * LIMIT).limit(LIMIT).sort("_id", -1)

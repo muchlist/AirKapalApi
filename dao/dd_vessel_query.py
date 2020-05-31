@@ -4,7 +4,7 @@ from db import mongo
 
 
 def search_vessel(name: str) -> list:
-    query_string = {'$regex': f'.*{search}.*'}
+    query_string = {'$regex': f'.*{name}.*'}
     vessel_collection = mongo.db.vessel.find(
         {"ship_name": query_string}
     )
